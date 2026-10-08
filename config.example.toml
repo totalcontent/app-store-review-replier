@@ -1,0 +1,26 @@
+# Copy this file to config.toml and fill it in.
+
+lookback_days = 30          # only reviews newer than this are shown
+only_bundle_ids = []        # empty = all your apps, or e.g. ["com.you.app1"]
+
+[app_store_connect]
+issuer_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+key_id = "ABC123DEFG"
+private_key_path = "AuthKey_ABC123DEFG.p8"   # relative to this folder, or a full path
+
+[claude]
+api_key = "sk-ant-..."   # your Claude API key; keep this file private
+model = "claude-sonnet-5-5"
+
+[style]
+tone = "Warm, friendly and down to earth. Like a helpful indie developer, not a corporation."
+support_contact = "support@example.com"
+signature = "Your name or team"
+
+# Optional, one block per app, keyed by bundle ID. A short description helps
+# the replies be specific. Run `python reply_reviews.py --list-apps` for the IDs.
+[apps."com.example.myapp"]
+# name = "..."   # optional: use this instead of the App Store name
+description = "A habit tracker with streaks and reminders."
+# support_contact = "myapp@example.com"
+# signature = "The MyApp team"

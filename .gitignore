@@ -1,0 +1,6 @@
+config.toml
+*.p8
+ignored_reviews.json
+.venv/
+venv/
+.DS_Store
