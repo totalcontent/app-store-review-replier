@@ -1,6 +1,7 @@
 # Copy this file to config.toml and fill it in.
 
 lookback_days = 30          # only reviews newer than this are shown
+i_read = ["English"]        # languages you read; anything else is translated into the first one
 only_bundle_ids = []        # empty = all your apps, or e.g. ["com.you.app1"]
 
 [app_store_connect]

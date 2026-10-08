@@ -39,6 +39,10 @@ When a review asks for a feature, the tool first asks you whether it is
 already available, coming soon, or something you will consider, and writes
 the reply to match. You can add a detail such as where to find it.
 
+Replies are written in the reviewer's language. For languages you don't
+read (see `i_read` in the config), the tool shows a translation of the review
+and of the draft reply. Only the reply itself is ever posted.
+
 ## Good to know
 
 - Replies are public and can take a while to show up on the App Store.
