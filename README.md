@@ -30,6 +30,7 @@ Claude, and posts only the ones you approve.
     python reply_reviews.py --list-apps   # check the key works
     python reply_reviews.py --dry-run     # see drafts, post nothing
     python reply_reviews.py               # approve and post
+    python reply_reviews.py --rating 4-5  # positive reviews only (also: 5, 1-2, 1,2)
 
 For each review you choose: **p**ost, **e**dit, **r**ewrite with a note
 ("shorter", "mention the fix is coming"), **s**kip, **i**gnore forever, or

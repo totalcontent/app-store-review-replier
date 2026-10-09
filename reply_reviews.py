@@ -9,6 +9,7 @@ Usage:
     python reply_reviews.py              # review, approve and post
     python reply_reviews.py --dry-run    # draft and show, never post
     python reply_reviews.py --days 90    # look further back (default from config)
+    python reply_reviews.py --rating 4-5 # only 4 and 5 star reviews
     python reply_reviews.py --list-apps  # show your apps and their IDs
 """
 
@@ -127,11 +128,13 @@ class AppStoreConnect:
             url, params = page.get("links", {}).get("next"), None
         return out
 
-    def unanswered_reviews(self, app_id, since):
+    def unanswered_reviews(self, app_id, since, ratings=None):
         """Newest first; stops paging once reviews are older than `since`."""
         out = []
         url = f"/v1/apps/{app_id}/customerReviews"
         params = {"exists[publishedResponse]": "false", "sort": "-createdDate", "limit": 100}
+        if ratings:
+            params["filter[rating]"] = ",".join(str(r) for r in ratings)
         while url:
             page = self._request("GET", url, params=params)
             for item in page["data"]:
@@ -139,6 +142,8 @@ class AppStoreConnect:
                 created = datetime.fromisoformat(a["createdDate"])
                 if created < since:
                     return out
+                if ratings and a["rating"] not in ratings:
+                    continue
                 out.append({
                     "id": item["id"],
                     "rating": a["rating"],
@@ -309,6 +314,21 @@ def show(app, review, reply, index, total, feature=None, reply_translation=None)
     print("-" * 72)
 
 
+def parse_ratings(text):
+    """'5' -> [5], '4-5' -> [4, 5], '1,2' -> [1, 2]"""
+    try:
+        if "-" in text:
+            lo, hi = (int(x) for x in text.split("-"))
+            ratings = list(range(lo, hi + 1))
+        else:
+            ratings = sorted({int(x) for x in text.split(",")})
+    except ValueError:
+        ratings = []
+    if not ratings or any(r < 1 or r > 5 for r in ratings):
+        sys.exit("--rating takes stars from 1 to 5, e.g. 5, 4-5 or 1,2")
+    return ratings
+
+
 def run(args):
     cfg = load_config()
     asc = AppStoreConnect(cfg["app_store_connect"])
@@ -329,12 +349,13 @@ def run(args):
 
     days = args.days or cfg.get("lookback_days", 30)
     since = datetime.now(timezone.utc) - timedelta(days=days)
+    ratings = parse_ratings(args.rating) if args.rating else None
     drafter = Drafter(cfg)
     ignored = load_ignored()
     posted = skipped = 0
 
     for app in apps:
-        reviews = [r for r in asc.unanswered_reviews(app["id"], since) if r["id"] not in ignored]
+        reviews = [r for r in asc.unanswered_reviews(app["id"], since, ratings) if r["id"] not in ignored]
         if not reviews:
             print(f"{app['name']}: nothing to answer in the last {days} days.")
             continue
@@ -388,6 +409,7 @@ def main():
     p = argparse.ArgumentParser(description="Reply to App Store reviews with Claude-drafted replies.")
     p.add_argument("--dry-run", action="store_true", help="draft and show replies, never post")
     p.add_argument("--days", type=int, help="how many days back to look")
+    p.add_argument("--rating", help="only these star ratings, e.g. 5, 4-5 or 1,2")
     p.add_argument("--list-apps", action="store_true", help="list your apps and exit")
     args = p.parse_args()
     try:
